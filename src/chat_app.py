@@ -4,10 +4,16 @@ from message_manager import messageManager
 from errors import messageManagerException
 import datetime
 from typing import List
+import requests
+
 # Init up
 app = FastAPI()
 
 msg_manager = messageManager()
+
+
+AUTH_APP_URL="http://authentication_service:8000"
+
 
 @app.post("/send_message")
 async def send_message(sendDetails:SendMessage) -> None:
@@ -32,3 +38,16 @@ async def get_messages(user_name:str) -> List[ReceiveMessage]:
         
     except messageManagerException as e:
         raise HTTPException(status_code=400, detail=str(e))
+    
+
+
+@app.get("/example_send_request_to_get_example_message")
+async def get_messages(user_name:str) -> str:
+    print("=======>> sending request to generate token")
+    response = requests.post(f"{AUTH_APP_URL}/example_message_endpoint", json={"user": user_name})
+    
+    return response.json()['example_message']
+    
+
+
+
