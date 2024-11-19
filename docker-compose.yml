@@ -1,0 +1,27 @@
+services:
+  web:
+    build: .
+    container_name: chat_app_server
+    command: uvicorn chat_app:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8080:8000"
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgresql://myuser:mypassword@db/chat_db
+ 
+  db:
+    image: postgres:13
+    container_name: chat_postgres_db
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: chat_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+
+volumes:
+  postgres_data:
