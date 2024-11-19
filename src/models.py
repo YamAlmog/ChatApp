@@ -1,12 +1,13 @@
 from pydantic import BaseModel
 import time
+from typing import List
 
 
-class SendMassage(BaseModel):
+class SendMessage(BaseModel):
     SrcName: str
-    Massage: str
+    message: List[str]
     DstName: str
 
-class ReceiveMassage(BaseModel):
+class ReceiveMessage(BaseModel):
     From: str
-    Massage: str
+    message: List[str]
