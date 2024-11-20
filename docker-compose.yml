@@ -11,7 +11,7 @@ services:
       - db
       - redis
     environment:
-      - DATABASE_URL=postgresql://myuser:mypassword@db/postgres
+      - DATABASE_URL=postgresql://myuser:mypassword@db:5432/postgres
       - REDIS_HOST=redis
       - REDIS_PORT=6379
 
@@ -28,7 +28,7 @@ services:
       - redis
       - web  # Ensure the service starts after chat_app
     environment:
-      - DATABASE_URL=postgresql://myuser:mypassword@db/postgres
+      - DATABASE_URL=postgresql://myuser:mypassword@db:5432/postgres
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - CHAT_APP_URL=http://web:8000  # URL for internal communication
@@ -51,6 +51,7 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@admin.com
       PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_WTF_CSRF_ENABLED: 'False'
     ports:
       - "5020:80"
     depends_on:

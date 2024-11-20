@@ -1,13 +1,12 @@
 from pydantic import BaseModel
-import time
 from typing import List
 
 
-class SendMessage(BaseModel):
-    SrcName: str
-    message: List[str]
-    DstName: str
+class MessagesDetails(BaseModel):
+    SourceName: str
+    Messages: List[str]
+    DestinationName: str
 
-class ReceiveMessage(BaseModel):
+class ReceiveMessages(BaseModel):
     From: str
-    message: List[str]
+    Messages: List[str]
