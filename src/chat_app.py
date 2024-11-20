@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from models import SendMessage, ReceiveMessage
-from message_manager import messageManager
+from message_manager import messageManagerDB
 from errors import messageManagerException
 import datetime
 from typing import List
@@ -9,8 +9,7 @@ import requests
 # Init up
 app = FastAPI()
 
-msg_manager = messageManager()
-
+msg_manager = messageManagerDB()
 
 AUTH_APP_URL="http://authentication_service:8000"
 
@@ -49,5 +48,9 @@ async def get_messages(user_name:str) -> str:
     return response.json()['example_message']
     
 
-
+@app.get("/test_insert_messages")
+async def test_insert_messages() -> dict:
+    msg_manager.insert_messages_test()
+    return {"message": "test messages inserted successfully"}
+        
 

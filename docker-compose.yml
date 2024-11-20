@@ -11,7 +11,7 @@ services:
       - db
       - redis
     environment:
-      - DATABASE_URL=postgresql://myuser:mypassword@db/malware_cache_db
+      - DATABASE_URL=postgresql://myuser:mypassword@db/postgres
       - REDIS_HOST=redis
       - REDIS_PORT=6379
 
@@ -23,10 +23,12 @@ services:
       - "8020:8000"
     depends_on:
       - db
+
+
       - redis
       - web  # Ensure the service starts after chat_app
     environment:
-      - DATABASE_URL=postgresql://myuser:mypassword@db/authentication_db
+      - DATABASE_URL=postgresql://myuser:mypassword@db/postgres
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - CHAT_APP_URL=http://web:8000  # URL for internal communication
@@ -37,7 +39,7 @@ services:
     environment:
       POSTGRES_USER: myuser
       POSTGRES_PASSWORD: mypassword
-      POSTGRES_DB: malware_cache_db
+      POSTGRES_DB: postgres
     ports:
       - "5432:5432"
     volumes:

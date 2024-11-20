@@ -3,36 +3,68 @@ import os
 from typing import List
 import hashlib
 from errors import messageManagerException
-import datetime
+from datetime import datetime
 from models import ReceiveMessage
+import psycopg2
 
 from dotenv import load_dotenv
 load_dotenv()
 
 
-# class messageManager:
-#     def __init__(self) -> None:
-#         # self.db_url = os.getenv("DB_URL")
+class messageManagerDB:
+    def __init__(self) -> None:
+        self.db_url = os.getenv("DATABASE_URL")
 
-#         create_chat_db_table = '''
-#             CREATE TABLE IF NOT EXIST chat_db(
-#             msg_id VARCHAR(255) PRIMARY KEY,
-#             user_src VARCHAR,
-#             user_dst VARCHAR,
-#             msg TEXT,
-#             time_stamp DATETIME);'''
+        # Corrected SQL query
+        create_chat_db_table = '''
+            CREATE TABLE IF NOT EXISTS chat_db(
+                msg_id VARCHAR(255) PRIMARY KEY,
+                user_src VARCHAR(255),
+                user_dst VARCHAR(255),
+                msg TEXT,
+                time_stamp TIMESTAMP
+            );
+        '''
+
+        try:
+            # Establish connection and create the table
+            with psycopg2.connect(self.db_url) as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute(create_chat_db_table)
+                    print("===========>>>> Table created successfully")
+
+        except psycopg2.Error as e:
+            print(f"Error while creating the table: {e}")
+
+    def insert_messages_test(self):
+        sample_messages = [
+            ("1", "user1", "user2", "Hello, how are you?", datetime.now()),
+            ("2", "user2", "user1", "I'm fine, thank you!", datetime.now()),
+            ("3", "user1", "user3", "Hi, long time no see!", datetime.now()),
+        ]
+
+        try:
+            # Establish connection and create the table
+            with psycopg2.connect(self.db_url) as conn:
+                with conn.cursor() as cursor:
+                    
+                    # Insert sample messages into the table
+                    insert_query = '''
+                        INSERT INTO chat_db (msg_id, user_src, user_dst, msg, time_stamp)
+                        VALUES (%s, %s, %s, %s, %s)
+                        ON CONFLICT (msg_id) DO NOTHING;
+                    '''
+                    cursor.executemany(insert_query, sample_messages)
+                    print("===========>>>> Sample messages inserted successfully")
+                    
+        except psycopg2.Error as e:
+            print(f"Error while creating the table or inserting data: {e}")
         
-  
-#         with psycopg2.connect(database="ChatDB",
-#         user="postgres",
-#         password="123456",
-#         host="localhost",
-#         port="5432") as conn:
-#             cursor = conn.cursor()
-#             cursor.execute(create_chat_db_table)
+
+        
     
-#     def insert_message_details() -> None:
-#         pass
+    def insert_message_details() -> None:
+        pass
 
 
 class messageManager:
