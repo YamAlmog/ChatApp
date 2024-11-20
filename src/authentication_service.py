@@ -31,6 +31,6 @@ class UserRequest(BaseModel):
 
 # Example message endpoint
 @app.post("/example_message_endpoint")
-async def verify_token(user_request: UserRequest):
+async def example_message_endpoint(user_request: UserRequest):
     return {"example_message": f"{user_request.user}: blabla" }
 

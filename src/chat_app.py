@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from models import SendMessage, ReceiveMessage
-from message_manager import messageManagerDB
-from errors import messageManagerException
+from message_manager import MessageManagerDB
+from errors import MessageManagerException
 import datetime
 from typing import List
 import requests
@@ -9,23 +9,23 @@ import requests
 # Init up
 app = FastAPI()
 
-msg_manager = messageManagerDB()
+msg_manager = MessageManagerDB()
 
 AUTH_APP_URL="http://authentication_service:8000"
 
 
 @app.post("/send_message")
-async def send_message(sendDetails:SendMessage) -> str:
+async def send_message(send_details:SendMessage) -> str:
     try:
-        src_name = sendDetails.SrcName
-        dst_name = sendDetails.DstName
-        msg = sendDetails.message
+        src_name = send_details.SrcName
+        dst_name = send_details.DstName
+        msg = send_details.message
         time = str(datetime.datetime.now())
         
         msg_manager.insert_message_details(src_name, dst_name, msg, time)
         
         return {"message": "message sent successfully"}
-    except messageManagerException as e:
+    except MessageManagerException as e:
         raise HTTPException(status_code=400, detail={e+time})
    
 
@@ -35,7 +35,7 @@ async def get_messages(user_name:str) -> List[ReceiveMessage]:
     try:
         return msg_manager.arrange_message_to_sent(user_name)
         
-    except messageManagerException as e:
+    except MessageManagerException as e:
         raise HTTPException(status_code=400, detail=str(e))
     
 

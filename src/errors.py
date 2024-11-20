@@ -1,5 +1,5 @@
 
-class messageManagerException(Exception):
+class MessageManagerException(Exception):
     def __init__(self, message):
         super().__init__(message)
 
