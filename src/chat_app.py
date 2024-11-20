@@ -15,7 +15,7 @@ AUTH_APP_URL="http://authentication_service:8000"
 
 
 @app.post("/send_message")
-async def send_message(sendDetails:SendMessage) -> None:
+async def send_message(sendDetails:SendMessage) -> str:
     try:
         src_name = sendDetails.SrcName
         dst_name = sendDetails.DstName
