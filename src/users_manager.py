@@ -1,6 +1,4 @@
 import psycopg2
-from psycopg2 import sql
-from psycopg2.extras import execute_values
 from typing import Optional
 from errors import InvalidUserName, InvalidPassword, InvalidToken, UnregisteredUser, UsersManagerException
 import re
@@ -17,18 +15,18 @@ class UserManagerDB:
     def __init__(self) -> None:
         self.db_url = os.getenv("DATABASE_URL")
 
-        CREATE_REGISTERED_TABLE_QUERY = """
-            CREATE TABLE IF NOT EXISTS registered_users (
+        CREATE_REGISTERED_TABLE_QUERY = '''
+            CREATE TABLE IF NOT EXISTS registered_users(
                 user_name VARCHAR(50) PRIMARY KEY,
-                user_password VARCHAR(128) NOT NULL,
+                user_password VARCHAR(128) NOT NULL
             );
-            """
-        CREATE_LOGIN_TABLE_QUERY = """
-            CREATE TABLE IF NOT EXISTS login_users (
+            '''
+        CREATE_LOGIN_TABLE_QUERY = '''
+            CREATE TABLE IF NOT EXISTS login_users(
                 user_name VARCHAR(50) PRIMARY KEY,
-                user_token VARCHAR(128) NOT NULL,
+                user_token VARCHAR(128) NOT NULL
             );
-            """
+            '''
         try:
             # Establish connection and create the table
             with psycopg2.connect(self.db_url) as conn:
@@ -39,20 +37,19 @@ class UserManagerDB:
                     print("===========>>>> login_users table created successfully")
 
         except psycopg2.Error as e:
-            print(f"Error while creating the table: {e}")
+            print(f"Error while creating table: {e}")
         
 
 
+
     def is_exist_user(self, user_name:str) -> bool:
-        query = f"SELECT 1 FROM registered_users WHERE user_name = {user_name}"
+        query = "SELECT 1 FROM registered_users WHERE user_name = %s"
         try:
             with psycopg2.connect(self.db_url) as conn:
                 with conn.cursor() as cursor:
-                    cursor.execute(query)
+                    cursor.execute(query, (user_name,))
                     # Fetch one result
                     result = cursor.fetchone()
-                    # Close the connection
-                    conn.close()
                 
             # Return True if a result is found, otherwise False
             return result is not None
@@ -60,18 +57,17 @@ class UserManagerDB:
             raise UsersManagerException(e)
 
     
-    def register_user(self, user_name:str,  :str) -> str:
+    def register_user(self, user_name:str,  user_password:str) -> str:
         query = """
         INSERT INTO registered_users (user_name, user_password)
-        VALUES %s
+        VALUES (%s ,%s)
         """
         try:
-            if not self.is_exist_user(user_name):
+            if self.is_exist_user(user_name) == False:
                 hash_password = AuthenticationHandler.hash_element(user_password)
-                values = [user_name, hash_password]
                 with psycopg2.connect(self.db_url) as conn:
                     with conn.cursor() as cursor:
-                        execute_values(cursor, query, values)
+                        cursor.execute(query, (user_name, hash_password))
                         conn.commit()
                 return "User successfully registered"
             else:
@@ -101,7 +97,7 @@ class UserManagerDB:
     def login_user(self, user_name:str, password:str) -> str:
         try:
             if not self.is_exist_user(user_name):
-                raise UnregisteredUser("Unregistered user, Please sign up")
+                raise UnregisteredUser("Unregistered user, Please sign up first")
             elif AuthenticationHandler.is_valid_password(user_name, password, self.db_url):
                 current_time = str(datetime.datetime.now())
                 token = AuthenticationHandler.hash_element(f"{user_name}{password}{current_time}")
@@ -137,7 +133,7 @@ class AuthenticationHandler:
     def is_valid_password(user_name:str, user_password:str, url: str):
         hash_password = AuthenticationHandler.hash_element(user_password)
         
-        query = "SELECT 1 FROM registered_users WHERE user_name = ? AND user_password = ?"
+        query = "SELECT 1 FROM registered_users WHERE user_name = %s AND user_password = %s"
         with psycopg2.connect(url) as conn:
             with conn.cursor() as cursor:
                 cursor.execute(query, (user_name, hash_password))

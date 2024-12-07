@@ -1,17 +1,18 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from models import UserRegistration, UserToken
 from users_manager import UserManagerDB
 
 app = FastAPI()
 
-user_manager = UserManagerDB
+user_manager = UserManagerDB()
 
 # Registration
 @app.post("/register")
-async def register_user(user_name:str, user_password:str):
+async def register_user(user: UserRegistration):
     try:
-        comment = user_manager.register_user(user_name, user_password)
-        return {"message": comment}
+        response = user_manager.register_user(user.user_name, user.user_password)
+        return {"message": response}
     except Exception as e:
         raise HTTPException(status_code=410, detail=f"Error occurs when try to register user: {e}")
 
@@ -19,12 +20,13 @@ async def register_user(user_name:str, user_password:str):
 
 # Login
 @app.post("/login")
-async def login(user_name:str, password:str):
+async def login(user: UserRegistration) -> UserToken:
     try:
-        user_token = user_manager.login_user(user_name, password)
-        return {"User token:", user_token}
+        user_token = user_manager.login_user(user.user_name, user.user_password)
+        user_token_object = UserToken(user_token = user_token)
+        return user_token_object
     except Exception as e:
-        raise HTTPException(status_code=410, detail=f"Error occurs when try to register user: {e}")
+        raise HTTPException(status_code=410, detail=f"Error occurs when try to login user: {e}")
 
 
 

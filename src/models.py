@@ -3,10 +3,20 @@ from typing import List
 
 
 class MessagesDetails(BaseModel):
-    SourceName: str
-    Messages: List[str]
-    DestinationName: str
+    source_name: str
+    messages: List[str]
+    destination_name: str
+
 
 class ReceiveMessages(BaseModel):
-    From: str
-    Messages: List[str]
+    receive_from: str
+    messages: List[str]
+
+
+class UserRegistration(BaseModel):
+    user_name: str
+    user_password: str
+
+
+class UserToken(BaseModel):
+    user_token: str

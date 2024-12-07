@@ -48,8 +48,8 @@ class MessageManagerDB:
         """
         # Prepare the values for bulk insertion
         values = [
-            (details.SourceName, details.DestinationName, message, time_stamp, False)
-            for message in details.Messages
+            (details.source_name, details.destination_name, message, time_stamp, False)
+            for message in details.messages
         ]
 
         try:
@@ -64,11 +64,11 @@ class MessageManagerDB:
 
 
     def filter_messages_for_user(self, user_name:str) -> List[Dict[str,str]]:
-        query = f"SELECT * FROM chat_messages WHERE user_dest = {user_name}"
+        query = "SELECT * FROM chat_messages WHERE user_dest = %s"
         try:
             with psycopg2.connect(self.db_url) as conn:
                 with conn.cursor() as cursor:
-                    cursor.execute(query)
+                    cursor.execute(query, (user_name,))
                     rows = cursor.fetchall()
                     print("=======================================")
                     print(rows)
@@ -90,7 +90,7 @@ class MessageManagerDB:
                 print(f"-------------{msg}------------")
                 user_src = msg['user_src']
                 message = msg['message']
-                message_element = ReceiveMessages(From=user_src, Messages=message)
+                message_element = ReceiveMessages(receive_from = user_src, messages = message)
                 list_of_receive_messages.append(message_element)
             return list_of_receive_messages
         except Exception as e:
