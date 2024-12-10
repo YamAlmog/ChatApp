@@ -1,6 +1,6 @@
 import psycopg2
 from typing import Optional
-from errors import InvalidUserName, InvalidPassword, InvalidToken, UnregisteredUser, UsersManagerException
+from errors import InvalidUserName, InvalidPassword, UserNotFoundError, UnregisteredUser, UsersManagerException
 import re
 import hashlib
 import datetime
@@ -104,9 +104,32 @@ class UserManagerDB:
                 self.insert_name_and_token(user_name, token)
                 return token
             else:
-                raise InvalidPassword(f"Error: {e}")
+                raise InvalidPassword("You entered an incorrect password")
+        except InvalidPassword:
+            raise    
         except Exception as e:
-            raise Exception(e)
+            raise Exception(f"Error: {e}")
+
+
+        
+    def authenticate_token(self, token:str, user_name:str) -> bool:
+        try:
+            query = "select user_token from login_users where user_name = %s"
+            with psycopg2.connect(self.db_url) as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute(query, (user_name, ))
+                    result = cursor.fetchone()
+                    
+                    if not result:
+                        raise UserNotFoundError(f"User {user_name} not found")
+                    
+                    # Check if a result was found
+                    return result[0] == token
+                        
+        except UserNotFoundError:
+            raise            
+        except Exception as e:
+            raise Exception(f"Error: {e}")
 
 
 
@@ -130,7 +153,7 @@ class AuthenticationHandler:
     
 
     @staticmethod
-    def is_valid_password(user_name:str, user_password:str, url: str):
+    def is_valid_password(user_name:str, user_password:str, url: str) -> bool:
         hash_password = AuthenticationHandler.hash_element(user_password)
         
         query = "SELECT 1 FROM registered_users WHERE user_name = %s AND user_password = %s"
@@ -146,38 +169,4 @@ class AuthenticationHandler:
                     raise InvalidPassword("Wrong Password")
 
 
-    @staticmethod
-    def is_valid_token(token:str, password:str, login_dict:dict) -> bool:
-        hash_password = AuthenticationHandler.hash_element(password)
-        if login_dict[hash_password] == token:
-            return True
-        else:
-            raise InvalidToken("Wrong Token")
-
-
-
-# POC:
-def main():
-    # user_ds = UsersDataset(DB_CONFIG)
-    # user_ds.create_table()
-    # try:    
-    #     user_manager = UserManager()
-    #     print(user_manager.register_dict)
-    #     user_manager.register_user('Yam', '15a234')
-    #     print(user_manager.register_dict)
-    #     auth_hendler = AuthenticationHandler()
-    #     # print(auth_hendler.is_valid_password('Yam', '15a234', user_manager.register_dict))
-
-    #     usr_token = user_manager.login_user("Yam", '15a234')
-    #     print(usr_token)
-    #     loging_dict = user_manager.loging_dict
-    #     print(loging_dict)
-
-    #     is_valid_token = auth_hendler.is_valid_token(usr_token, '15a234', loging_dict)
-    #     print("Token is: ",is_valid_token)
-
-    # except Exception as e:
-    #     print(str(e))
-    pass
-if __name__ == '__main__':
-    main()
+    

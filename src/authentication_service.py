@@ -1,8 +1,7 @@
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from models import UserRegistration, UserToken
+from models import UserRegistration, UserToken, TokenAuthentication
 from users_manager import UserManagerDB
-
+from errors import UserNotFoundError, InvalidPassword
 app = FastAPI()
 
 user_manager = UserManagerDB()
@@ -25,26 +24,26 @@ async def login(user: UserRegistration) -> UserToken:
         user_token = user_manager.login_user(user.user_name, user.user_password)
         user_token_object = UserToken(user_token = user_token)
         return user_token_object
+    except InvalidPassword:
+        raise HTTPException(status_code=404, detail="Incorrect password")
     except Exception as e:
-        raise HTTPException(status_code=410, detail=f"Error occurs when try to login user: {e}")
+        raise HTTPException(status_code=410, detail=f"Error with login user: {e}")
 
 
 
 # Token Verification
-@app.get("/verify_token")
-async def verify_token(user_token:str, user_name:str):
-    pass
+@app.post("/verify_token")
+async def verify_token(user: TokenAuthentication) -> dict:
+    try:
+        is_valid = user_manager.authenticate_token(user.user_token, user.user_name)
+        if is_valid:
+            return {"valid": True}
+        else:
+            return {"valid": False}
+    except UserNotFoundError:
+        raise HTTPException(status_code=404, detail="User not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error verifying token: {e}")
 
 
-
-
-############### Example message endpoint ###############
-
-class UserRequest(BaseModel):
-    user: str
-
-# Example message endpoint
-@app.post("/example_message_endpoint")
-async def example_message_endpoint(user_request: UserRequest):
-    return {"example_message": f"{user_request.user}: blabla" }
 

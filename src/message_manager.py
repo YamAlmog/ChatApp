@@ -4,7 +4,7 @@ from typing import List, Dict
 import hashlib
 from errors import MessageManagerException
 from datetime import datetime
-from models import ReceiveMessages, MessagesDetails
+from models import MessagesDetails
 import psycopg2
 from psycopg2.extras import execute_values
 
@@ -48,7 +48,7 @@ class MessageManagerDB:
         """
         # Prepare the values for bulk insertion
         values = [
-            (details.source_name, details.destination_name, message, time_stamp, False)
+            (details.user_name, details.destination_name, message, time_stamp, False)
             for message in details.messages
         ]
 
@@ -70,11 +70,10 @@ class MessageManagerDB:
                 with conn.cursor() as cursor:
                     cursor.execute(query, (user_name,))
                     rows = cursor.fetchall()
-                    print("=======================================")
                     print(rows)
-                    # Close the connection
-                    conn.close()
-                    messages = [{'user_src': row[1], 'message': row[3]} for row in rows]
+                    print("=======================================")
+                    messages = [{'from': row[1], 'message': row[3], 'at':row[4].strftime("%Y-%m-%d %H:%M:%S")} for row in rows]
+                    print(messages)
                     return messages
 
         except Exception as e:
@@ -82,28 +81,12 @@ class MessageManagerDB:
 
 
 
-    def retrieve_messages_of_given_user(self, user_name:str) -> List[ReceiveMessages]:
+    def retrieve_messages_of_given_user(self, user_name:str) -> List[Dict[str,str]]:
         try:
             messages = self.filter_messages_for_user(user_name)
-            list_of_receive_messages = []
-            for msg in messages:
-                print(f"-------------{msg}------------")
-                user_src = msg['user_src']
-                message = msg['message']
-                message_element = ReceiveMessages(receive_from = user_src, messages = message)
-                list_of_receive_messages.append(message_element)
-            return list_of_receive_messages
+            return messages
         except Exception as e:
             raise MessageManagerException(f"Failed to retrieve messages: {str(e)}")
 
 
 
-
-
-
-
-# POC
-def main() -> None:
-    pass
-if __name__ == "__main__":
-    main()
