@@ -2,13 +2,14 @@ from fastapi import FastAPI, HTTPException
 from models import UserRegistration, UserToken, TokenAuthentication
 from users_manager import UserManagerDB
 from errors import UserNotFoundError, InvalidPassword
+
 app = FastAPI()
 
 user_manager = UserManagerDB()
 
 # Registration
 @app.post("/register")
-async def register_user(user: UserRegistration):
+async def register_user(user: UserRegistration) -> dict:
     try:
         response = user_manager.register_user(user.user_name, user.user_password)
         return {"message": response}

@@ -1,7 +1,6 @@
 
 import os
 from typing import List, Dict
-import hashlib
 from errors import MessageManagerException
 from datetime import datetime
 from models import MessagesDetails

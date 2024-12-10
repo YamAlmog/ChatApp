@@ -4,6 +4,7 @@ from message_manager import MessageManagerDB
 from errors import MessageManagerException
 import datetime
 import httpx
+from typing import Dict, List
 
 # Init up
 app = FastAPI()
@@ -24,9 +25,21 @@ async def validate_token(token: str, user_name: str):
         raise HTTPException(status_code=403, detail=f"Token validation failed: {str(e)}")
 
 
+@app.post("/login")
+async def sign_in(user_name: str, password: str) -> str:
+    url = f"{AUTH_APP_URL}/login"
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(url, json={"user_name": user_name, "user_password":password})
+            response.raise_for_status()
+            return response.json()['user_token']
+    except Exception as e:
+        raise HTTPException(status_code=403, detail=f"Error with login: {str(e)}")    
+
+
 
 @app.post("/send_message")
-async def send_message(send_details:MessagesDetails, token:str):
+async def send_message(send_details:MessagesDetails, token:str) -> Dict[str,str]:
     try:
         is_valid = await validate_token(token, send_details.user_name)
         if not is_valid:
@@ -45,7 +58,7 @@ async def send_message(send_details:MessagesDetails, token:str):
 
 
 @app.get("/get_messages")
-async def get_messages(user_name:str, token:str):
+async def get_messages(user_name:str, token:str)-> List[Dict[str,str]]:
     try:
         is_valid = await validate_token(token, user_name)
         if not is_valid:

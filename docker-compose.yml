@@ -23,8 +23,6 @@ services:
       - "8020:8000"
     depends_on:
       - db
-
-
       - redis
       - web  # Ensure the service starts after chat_app
     environment:
@@ -73,6 +71,22 @@ services:
       - "8001:8001"
     volumes:
       - chatapp_redis_insight_volume_data:/db
+
+
+  test_runner:
+    build: .
+    container_name: test_runner
+    depends_on:
+      - web
+      - authentication_service
+    profiles:
+      - test
+    environment:
+      - CHAT_APP_URL=http://web:8000
+      - AUTH_APP_URL=http://authentication_service:8000
+      - DATABASE_URL=postgresql://myuser:mypassword@db:5432/postgres
+    command: pytest tests/test_main.py
+
 
 volumes:
   chatapp_postgres_data:
