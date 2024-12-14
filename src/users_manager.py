@@ -72,7 +72,8 @@ class UserManagerDB:
                 return "User successfully registered"
             else:
                 raise InvalidUserName("This username is already in use, please choose another name.")
-            
+        except InvalidUserName as e:
+            raise 
         except Exception as e:
             raise UsersManagerException(f"Failed to insert user details: {str(e)}")
         
@@ -105,6 +106,8 @@ class UserManagerDB:
                 return token
             else:
                 raise InvalidPassword("You entered an incorrect password")
+        except UnregisteredUser:
+            raise    
         except InvalidPassword:
             raise    
         except Exception as e:
@@ -119,13 +122,12 @@ class UserManagerDB:
                 with conn.cursor() as cursor:
                     cursor.execute(query, (user_name, ))
                     result = cursor.fetchone()
-                    
+                    # Handle in case user not found in table
                     if not result:
-                        raise UserNotFoundError(f"User {user_name} not found")
+                        raise UserNotFoundError(f"Unidentified user, not registered or not logged in")
                     
-                    # Check if a result was found
-                    return result[0] == token
-                        
+                    # Check if token is correct
+                    return result[0] == token                      
         except UserNotFoundError:
             raise            
         except Exception as e:
@@ -162,11 +164,8 @@ class AuthenticationHandler:
                 cursor.execute(query, (user_name, hash_password))
                 result = cursor.fetchone()
                 conn.commit()
-                # Check if a result was found
-                if result:
-                    return True
-                else:
-                    raise InvalidPassword("Wrong Password")
+                
+                return result is not None
 
 
     

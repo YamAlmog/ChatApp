@@ -58,7 +58,7 @@ class MessageManagerDB:
                     execute_values(cursor, query, values)
                     conn.commit()
         except Exception as e:
-            raise MessageManagerException(f"Failed to insert messages: {str(e)}")
+            raise MessageManagerException(f"Failed to insert messages into chat_messages table: {e}")
 
 
 
@@ -83,7 +83,11 @@ class MessageManagerDB:
     def retrieve_messages_of_given_user(self, user_name:str) -> List[Dict[str,str]]:
         try:
             messages = self.filter_messages_for_user(user_name)
+            if messages == []:
+                raise MessageManagerException("No messages were received for you")
             return messages
+        except MessageManagerException:
+            raise
         except Exception as e:
             raise MessageManagerException(f"Failed to retrieve messages: {str(e)}")
 
