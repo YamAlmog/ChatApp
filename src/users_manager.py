@@ -1,14 +1,19 @@
 import psycopg2
 from typing import Optional
-from errors import InvalidUserName, InvalidPassword, UserNotFoundError, UnregisteredUser, UsersManagerException
+from errors import (
+    InvalidUserName,
+    InvalidPassword,
+    UserNotFoundError,
+    UnregisteredUser,
+    UsersManagerException,
+)
 import re
 import hashlib
 import datetime
 import os
 
 
-MIN_PASSWOED_LEN = 5 
-
+MIN_PASSWOED_LEN = 5
 
 
 class UserManagerDB:
@@ -38,11 +43,8 @@ class UserManagerDB:
 
         except psycopg2.Error as e:
             print(f"Error while creating table: {e}")
-        
 
-
-
-    def is_exist_user(self, user_name:str) -> bool:
+    def is_exist_user(self, user_name: str) -> bool:
         query = "SELECT 1 FROM registered_users WHERE user_name = %s"
         try:
             with psycopg2.connect(self.db_url) as conn:
@@ -50,14 +52,13 @@ class UserManagerDB:
                     cursor.execute(query, (user_name,))
                     # Fetch one result
                     result = cursor.fetchone()
-                
+
             # Return True if a result is found, otherwise False
             return result is not None
         except Exception as e:
             raise UsersManagerException(e)
 
-    
-    def register_user(self, user_name:str,  user_password:str) -> str:
+    def register_user(self, user_name: str, user_password: str) -> str:
         query = """
         INSERT INTO registered_users (user_name, user_password)
         VALUES (%s ,%s)
@@ -71,16 +72,17 @@ class UserManagerDB:
                         conn.commit()
                 return "User successfully registered"
             else:
-                raise InvalidUserName("This username is already in use, please choose another name.")
-        except InvalidUserName as e:
-            raise 
+                raise InvalidUserName(
+                    "This username is already in use, please choose another name."
+                )
+        except InvalidUserName:
+            raise
         except Exception as e:
             raise UsersManagerException(f"Failed to insert user details: {str(e)}")
-        
 
-    def insert_name_and_token(self, name:str, token:str) -> None:
-        try:   
-            # if user name exist in login only update the token 
+    def insert_name_and_token(self, name: str, token: str) -> None:
+        try:
+            # if user name exist in login only update the token
             query = """
             INSERT INTO login_users (user_name, user_token)
             VALUES (%s, %s)
@@ -89,13 +91,12 @@ class UserManagerDB:
             """
             with psycopg2.connect(self.db_url) as conn:
                 with conn.cursor() as cursor:
-                    cursor.execute(query,(name, token))
+                    cursor.execute(query, (name, token))
                     conn.commit()
         except Exception as e:
             raise UsersManagerException(f"Failed to insert user token into login_users: {str(e)}")
 
-
-    def login_user(self, user_name:str, password:str) -> str:
+    def login_user(self, user_name: str, password: str) -> str:
         try:
             if not self.is_exist_user(user_name):
                 raise UnregisteredUser("Unregistered user, Please sign up first")
@@ -107,38 +108,36 @@ class UserManagerDB:
             else:
                 raise InvalidPassword("You entered an incorrect password")
         except UnregisteredUser:
-            raise    
+            raise
         except InvalidPassword:
-            raise    
+            raise
         except Exception as e:
             raise Exception(f"Error: {e}")
 
-
-        
-    def authenticate_token(self, token:str, user_name:str) -> bool:
+    def authenticate_token(self, token: str, user_name: str) -> bool:
         try:
             query = "select user_token from login_users where user_name = %s"
             with psycopg2.connect(self.db_url) as conn:
                 with conn.cursor() as cursor:
-                    cursor.execute(query, (user_name, ))
+                    cursor.execute(query, (user_name,))
                     result = cursor.fetchone()
                     # Handle in case user not found in table
                     if not result:
-                        raise UserNotFoundError(f"Unidentified user, not registered or not logged in")
-                    
+                        raise UserNotFoundError(
+                            "Unidentified user, not registered or not logged in"
+                        )
+
                     # Check if token is correct
-                    return result[0] == token                      
+                    return result[0] == token
         except UserNotFoundError:
-            raise            
+            raise
         except Exception as e:
             raise Exception(f"Error: {e}")
 
 
-
-
 class AuthenticationHandler:
     @staticmethod
-    def verified_password(password:str) -> Optional[bool]:
+    def verified_password(password: str) -> Optional[bool]:
         # check password conventions like len, letters, numbers
         # return exception if not valid and the password ruls
         if len(password) < MIN_PASSWOED_LEN:
@@ -148,24 +147,19 @@ class AuthenticationHandler:
         else:
             return True
 
-
     @staticmethod
-    def hash_element(element:str) -> str:
+    def hash_element(element: str) -> str:
         return hashlib.sha256(element.encode()).hexdigest()
-    
 
     @staticmethod
-    def is_valid_password(user_name:str, user_password:str, url: str) -> bool:
+    def is_valid_password(user_name: str, user_password: str, url: str) -> bool:
         hash_password = AuthenticationHandler.hash_element(user_password)
-        
+
         query = "SELECT 1 FROM registered_users WHERE user_name = %s AND user_password = %s"
         with psycopg2.connect(url) as conn:
             with conn.cursor() as cursor:
                 cursor.execute(query, (user_name, hash_password))
                 result = cursor.fetchone()
                 conn.commit()
-                
+
                 return result is not None
-
-
-    

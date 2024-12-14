@@ -19,13 +19,12 @@ async def register_user(user: UserRegistration) -> dict:
         raise HTTPException(status_code=500, detail=f"Error occurs when try to register user: {e}")
 
 
-
 # Login
 @app.post("/login")
 async def login(user: UserRegistration) -> UserToken:
     try:
         user_token = user_manager.login_user(user.user_name, user.user_password)
-        user_token_object = UserToken(user_token = user_token)
+        user_token_object = UserToken(user_token=user_token)
         return user_token_object
     except UnregisteredUser as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -33,7 +32,6 @@ async def login(user: UserRegistration) -> UserToken:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error with login user: {e}")
-
 
 
 # Token Verification
@@ -49,6 +47,3 @@ async def verify_token(user: TokenAuthentication) -> dict:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error verifying token: {e}")
-
-
-

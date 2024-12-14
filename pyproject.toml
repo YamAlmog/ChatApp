@@ -1,0 +1,4 @@
+[tool.black]
+line-length = 100              # Maximum line length 100 
+target-version = ["py38"]     # Specify Python versions Black should target
+skip-string-normalization = true  # Disable double-quote normalization

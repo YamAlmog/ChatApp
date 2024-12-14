@@ -18,4 +18,4 @@ class UserToken(BaseModel):
 
 
 class TokenAuthentication(UserToken):
-    user_name : str
+    user_name: str

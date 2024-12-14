@@ -1,9 +1,9 @@
 [flake8]
 # Set maximum line length
-max-line-length = 120
+max-line-length = 100
 
 # # Ignore specific warnings and errors
-# ignore = E712, W503 
+ignore = E712, W503 , 
 
 # Exclude specific directories from checks
 exclude = .git, __pycache__, venv
