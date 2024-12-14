@@ -55,6 +55,7 @@ def clean_db() -> None:
 
 clean_db()
 
+
 # -------------------------------------------- ____ registration tests ____ --------------------------------------------
 # test registration function
 def test_registration() -> None:

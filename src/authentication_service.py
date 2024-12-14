@@ -7,6 +7,7 @@ app = FastAPI()
 
 user_manager = UserManagerDB()
 
+
 # Registration
 @app.post("/register")
 async def register_user(user: UserRegistration) -> dict:
