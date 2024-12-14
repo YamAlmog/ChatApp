@@ -56,7 +56,7 @@ def clean_db() -> None:
 clean_db()
 
 
-# -------------------------------------------- ____ registration tests ____ --------------------------------------------
+# ---------------------------------- ____ registration tests ____ ----------------------------------
 # test registration function
 def test_registration() -> None:
     new_user = {"user_name": USER1, "user_password": USER1_PASSWORD}
@@ -75,13 +75,13 @@ def test_registration_with_InvalidUserName() -> None:
     }
 
 
-# -------------------------------------------- ____ login tests ____ --------------------------------------------
+# ---------------------------------- ____ login tests ____ ----------------------------------
 # test login endpoint and verify token
 def test_login() -> None:
     global user_1_token
     new_user = {"user_name": USER1, "user_password": USER1_PASSWORD}
     response = auth_client.post("/login", json=new_user)
-    assert response.status_code == 208
+    assert response.status_code == 200
     user_1_token = response.json()['user_token']
 
 
@@ -101,7 +101,7 @@ def test_login_with_InvalidPassword() -> None:
     assert response.json() == {"detail": "You entered an incorrect password"}
 
 
-# -------------------------------------------- ____ verify token tests ____ --------------------------------------------
+# ---------------------------------- ____ verify token tests ____ ----------------------------------
 # test verify token endpoint
 def test_verify_token() -> None:
     # Correct token
@@ -131,7 +131,7 @@ def test_verify_token_UserNotFoundError() -> None:
     }
 
 
-# -------------------------------------------- ____ send message tests ____ --------------------------------------------
+# ---------------------------------- ____ send message tests ____ ----------------------------------
 # test send message endpoint
 def test_send_message() -> None:
     global user_1_token
@@ -174,7 +174,7 @@ def test_send_message_with_not_found_user() -> None:
     assert response.json() == {"detail": "Unidentified user, not registered or not logged in"}
 
 
-# -------------------------------------------- ____ get message tests ____ --------------------------------------------
+# ---------------------------------- ____ get message tests ____ ----------------------------------
 # test receive message endpoint
 def test_get_message():
     global user_2_token
