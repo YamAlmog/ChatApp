@@ -82,7 +82,7 @@ class MessageManagerDB:
         except Exception as e:
             raise MessageManagerException(f"{str(e)}")
 
-    def retrieve_messages_of_given_user(self, user_name: str) -> List[Dict[str, str]] | None:
+    def retrieve_messages_of_given_user(self, user_name: str) -> List[Dict[str, str]]:
         try:
             messages = self.filter_messages_for_user(user_name)
             if messages == []:
