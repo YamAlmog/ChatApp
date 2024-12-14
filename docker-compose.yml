@@ -1,0 +1,93 @@
+
+services:
+  web:
+    build: .
+    container_name: chat_app
+    command: uvicorn chat_app:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8010:8000"
+    depends_on:
+      - db
+      - redis
+    environment:
+      - DATABASE_URL=postgresql://myuser:mypassword@db:5432/postgres
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+
+  authentication_service:
+    build: .
+    container_name: auth_service
+    command: uvicorn authentication_service:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8020:8000"
+    depends_on:
+      - db
+      - redis
+      - web  # Ensure the service starts after chat_app
+    environment:
+      - DATABASE_URL=postgresql://myuser:mypassword@db:5432/postgres
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - CHAT_APP_URL=http://web:8000  # URL for internal communication
+
+  db:
+    image: postgres:13
+    container_name: postgres_db_chat_app
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - chatapp_postgres_data:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_WTF_CSRF_ENABLED: 'False'
+    ports:
+      - "5020:80"
+    depends_on:
+      - db
+
+  redis:
+    image: redis:latest
+    container_name: redis_chat_app
+    ports:
+      - "6379:6379"
+    volumes:
+      - chatapp_redis_volume_data:/data
+  
+  redis_insight:
+    image: redislabs/redisinsight:latest
+    container_name: redis_insight
+    restart: always
+    ports:
+      - "8001:8001"
+    volumes:
+      - chatapp_redis_insight_volume_data:/db
+
+
+  test_runner:
+    build: .
+    container_name: test_runner
+    depends_on:
+      - web
+      - authentication_service
+    profiles:
+      - test
+    environment:
+      - CHAT_APP_URL=http://web:8000
+      - AUTH_APP_URL=http://authentication_service:8000
+      - DATABASE_URL=postgresql://myuser:mypassword@db:5432/postgres
+    command: pytest tests/test_main.py
+
+
+volumes:
+  chatapp_postgres_data:
+  chatapp_redis_volume_data:
+  chatapp_redis_insight_volume_data:
