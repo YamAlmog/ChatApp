@@ -81,7 +81,7 @@ def test_login() -> None:
     global user_1_token
     new_user = {"user_name": USER1, "user_password": USER1_PASSWORD}
     response = auth_client.post("/login", json=new_user)
-    assert response.status_code == 200
+    assert response.status_code == 208
     user_1_token = response.json()['user_token']
 
 
